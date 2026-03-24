@@ -67,11 +67,14 @@ export class ChatService {
     await this.eventTracker.track(dto.chatbotId, 'message_sent', dto.visitorId);
 
     // 7. Generate streaming AI response
-    const self = this;
+    const ragService = this.ragService;
+    const chatHistory = this.chatHistory;
+    const handoffService = this.handoffService;
+    const eventTracker = this.eventTracker;
     const stream = async function* (): AsyncGenerator<ChatEvent> {
       let fullResponse = '';
 
-      for await (const token of self.ragService.generateStreamingResponse({
+      for await (const token of ragService.generateStreamingResponse({
         chatbotId: dto.chatbotId,
         query: dto.content,
         conversationHistory: history.map((m) => ({ role: m.role, content: m.content })),
@@ -94,14 +97,14 @@ export class ChatService {
       }
 
       // Save assistant response
-      await self.chatHistory.saveMessage(conversation.id, 'assistant', fullResponse.trim());
+      await chatHistory.saveMessage(conversation.id, 'assistant', fullResponse.trim());
 
       // Check if handoff keywords detected
       const handoffKeywords = ['speak to human', 'talk to agent', 'real person', 'human agent'];
       if (handoffKeywords.some((kw) => dto.content.toLowerCase().includes(kw))) {
-        await self.handoffService.initiateHandoff(conversation.id, 'User requested human agent');
+        await handoffService.initiateHandoff(conversation.id, 'User requested human agent');
         yield { type: 'handoff' };
-        await self.eventTracker.track(dto.chatbotId, 'handoff_initiated', dto.visitorId);
+        await eventTracker.track(dto.chatbotId, 'handoff_initiated', dto.visitorId);
       }
     };
 

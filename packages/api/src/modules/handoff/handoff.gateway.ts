@@ -12,7 +12,7 @@ export class HandoffGateway implements OnGatewayConnection, OnGatewayDisconnect 
     if (tenantId) client.join(`tenant:${tenantId}`);
   }
 
-  handleDisconnect(client: Socket) {}
+  handleDisconnect(_client: Socket) {}
 
   @SubscribeMessage('agent:message')
   async handleAgentMessage(@ConnectedSocket() client: Socket, @MessageBody() data: { conversationId: string; content: string; agentId: string }) {

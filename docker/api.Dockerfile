@@ -3,9 +3,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# OpenSSL for Prisma on Alpine
+RUN apk add --no-cache openssl
+
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY pnpm-workspace.yaml package.json tsconfig.base.json pnpm-lock.yaml* ./
 COPY packages/api/package.json packages/api/
 COPY packages/shared/package.json packages/shared/
 
@@ -22,6 +25,9 @@ RUN cd packages/api && pnpm build
 FROM node:20-alpine AS production
 
 WORKDIR /app
+
+# OpenSSL for Prisma on Alpine
+RUN apk add --no-cache openssl
 
 RUN corepack enable && corepack prepare pnpm@9 --activate
 

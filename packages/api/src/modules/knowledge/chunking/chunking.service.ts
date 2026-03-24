@@ -34,7 +34,7 @@ export class ChunkingService {
     }
 
     const splits = separator ? text.split(separator) : [text];
-    let currentChunk: string[] = [];
+    const currentChunk: string[] = [];
     let currentLength = 0;
 
     for (const split of splits) {
