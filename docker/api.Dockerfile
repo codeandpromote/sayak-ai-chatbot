@@ -42,9 +42,12 @@ COPY packages/shared/package.json packages/shared/
 ENV NODE_ENV=production
 RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
 
-COPY --from=builder /app/packages/api/dist packages/api/dist
+# Re-generate Prisma client in production node_modules
 COPY --from=builder /app/packages/api/prisma packages/api/prisma
-COPY --from=builder /app/packages/api/node_modules/.prisma packages/api/node_modules/.prisma
+RUN cd packages/api && npx prisma generate
+
+# Copy build outputs
+COPY --from=builder /app/packages/api/dist packages/api/dist
 COPY --from=builder /app/packages/shared/dist packages/shared/dist
 
 # Memory optimization for Render Free (512MB RAM)
