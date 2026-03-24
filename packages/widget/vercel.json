@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm build:widget",
+  "installCommand": "cd ../.. && npx pnpm@9 install",
+  "buildCommand": "cd ../.. && npx pnpm@9 build:widget",
   "outputDirectory": "dist",
-  "installCommand": "echo 'Install handled in buildCommand'",
   "routes": [
     {
       "src": "/(.*)",
