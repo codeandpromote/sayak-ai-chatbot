@@ -1,48 +1,53 @@
 # ─── Render Environment Group: sayak-chatbot-env ──────────
 #
-# Create this as an environment group in the Render Dashboard:
-#   Dashboard -> Environment Groups -> New Environment Group
+# Create in Render Dashboard:
+#   Dashboard → Environment Groups → New Environment Group
 #   Name: sayak-chatbot-env
 #
-# Then add the following variables. This file is for documentation
-# only -- do NOT commit actual secrets.
+# Then add the variables below. This file is for documentation
+# only — do NOT commit actual secrets.
 #
-# Docs: https://docs.render.com/environment-groups
+# No credit card required for Render free tier.
 
-# ─── Database ────────────────────────────────────────────
-# Use Render's managed PostgreSQL (free tier: 256MB, 90-day expiry)
-# or an external provider like Neon (free tier: 512MB, no expiry)
-DATABASE_URL: postgresql://user:password@host:5432/sayak_chatbot?schema=public
+# ─── Database ──────────────────────────────────────────
+# Neon.tech (free, no card: 0.5GB storage, pgvector, no expiry)
+# Sign up: https://neon.tech
+# After creating project, run in SQL Editor:
+#   CREATE EXTENSION IF NOT EXISTS vector;
+DATABASE_URL: postgresql://neondb_owner:xxx@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
 
-# ─── Redis ───────────────────────────────────────────────
-# Render does not offer free Redis. Options:
-#   - Upstash Redis (free tier: 10k commands/day)
-#   - Railway Redis (free trial)
-#   - Remove Redis dependency if not using BullMQ queues
-REDIS_URL: redis://default:password@host:6379
+# ─── Redis ─────────────────────────────────────────────
+# Upstash (free, no card: 10K commands/day, 256MB)
+# Sign up: https://upstash.com
+# NOTE: App works without Redis for all core features.
+#       Redis is only needed if you enable BullMQ job queues later.
+REDIS_URL: rediss://default:xxx@us1-xxx.upstash.io:6379
 
-# ─── Authentication / JWT ────────────────────────────────
-# Generate strong random secrets: openssl rand -base64 48
-JWT_SECRET: CHANGE_ME_generate_with_openssl_rand_base64_48
-JWT_REFRESH_SECRET: CHANGE_ME_generate_with_openssl_rand_base64_48
+# ─── Authentication / JWT ──────────────────────────────
+# Generate with: openssl rand -base64 48
+JWT_SECRET: CHANGE_ME
+JWT_REFRESH_SECRET: CHANGE_ME
 JWT_EXPIRATION: 15m
 JWT_REFRESH_EXPIRATION: 7d
 
-# ─── LLM Providers ──────────────────────────────────────
-# At least one is required for RAG/chat functionality
-GEMINI_API_KEY: ""       # Google AI Studio: https://aistudio.google.com/apikey
-GROQ_API_KEY: ""         # Groq Console: https://console.groq.com/keys
+# ─── LLM Providers ────────────────────────────────────
+# At least ONE required for chat/RAG
+# Gemini (free, no card: 15 RPM, 1M tokens/day)
+#   https://aistudio.google.com/apikey
+GEMINI_API_KEY: ""
+# Groq (free, no card: 30 RPM, 6K tokens/min)
+#   https://console.groq.com/keys
+GROQ_API_KEY: ""
 
-# ─── Application URLs ───────────────────────────────────
-# Update these after deploying each service
-API_URL: https://api-YOURAPP.onrender.com
-DASHBOARD_URL: https://your-dashboard.vercel.app
-WIDGET_CDN_URL: https://your-widget.vercel.app
+# ─── Application URLs ─────────────────────────────────
+# Fill in AFTER deploying each service
+API_URL: https://sayak-ai-chatbot-api.onrender.com
+DASHBOARD_URL: https://sayak-ai-chatbot.vercel.app
+WIDGET_CDN_URL: https://sayak-ai-chatbot-widget.vercel.app
 
-# ─── CORS ────────────────────────────────────────────────
-# Comma-separated list of allowed origins
-CORS_ORIGINS: https://your-dashboard.vercel.app,https://your-widget.vercel.app
+# ─── CORS ──────────────────────────────────────────────
+CORS_ORIGINS: https://sayak-ai-chatbot.vercel.app,https://sayak-ai-chatbot-widget.vercel.app
 
-# ─── Runtime ─────────────────────────────────────────────
+# ─── Runtime ───────────────────────────────────────────
 NODE_ENV: production
 API_PORT: "3000"

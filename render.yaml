@@ -13,7 +13,7 @@ services:
     runtime: docker
     dockerfilePath: ./docker/api.Dockerfile
     dockerContext: .
-    repo: https://github.com/YOUR_ORG/sayak-ai-chatbot  # Update with your repo URL
+    repo: https://github.com/sayakbiswas/sayak-ai-chatbot
     branch: main
     plan: free
     region: oregon

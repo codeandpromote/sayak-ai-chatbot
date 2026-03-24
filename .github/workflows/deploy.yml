@@ -52,23 +52,22 @@ jobs:
       - name: Build Widget
         run: pnpm build:widget
 
-  # ─── Deploy API to Koyeb ───────────────────────────
+  # ─── Deploy API to Render ──────────────────────────
   deploy-api:
-    name: Deploy API to Koyeb
+    name: Deploy API to Render
     needs: build-and-test
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
-      - name: Install Koyeb CLI
-        run: curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
-
-      - name: Trigger Koyeb redeploy
-        env:
-          KOYEB_TOKEN: ${{ secrets.KOYEB_API_TOKEN }}
+      - name: Trigger Render deploy hook
         run: |
-          koyeb service redeploy sayak-ai-chatbot/api
-          echo "Koyeb redeploy triggered successfully"
+          response=$(curl -sf -o /dev/null -w "%{http_code}" "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+          if [ "$response" -ne 200 ] && [ "$response" -ne 201 ]; then
+            echo "::error::Render deploy hook returned HTTP $response"
+            exit 1
+          fi
+          echo "Render deploy triggered successfully (HTTP $response)"
 
   # ─── Dashboard (Vercel auto-deploys via GitHub integration) ─
   verify-dashboard:

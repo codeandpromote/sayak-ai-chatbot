@@ -41,7 +41,7 @@ COPY --from=builder /app/packages/api/prisma packages/api/prisma
 COPY --from=builder /app/packages/api/node_modules/.prisma packages/api/node_modules/.prisma
 COPY --from=builder /app/packages/shared/dist packages/shared/dist
 
-# Memory optimization for Koyeb Nano (512MB RAM)
+# Memory optimization for Render Free (512MB RAM)
 ENV NODE_OPTIONS="--max-old-space-size=384"
 ENV PORT=3000
 

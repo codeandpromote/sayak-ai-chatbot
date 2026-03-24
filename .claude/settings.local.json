@@ -6,7 +6,8 @@
       "Bash(npx pnpm@9 --filter @sayak-chatbot/shared build)",
       "Bash(npx pnpm@9 --filter api prisma:generate)",
       "Bash(npx pnpm@9 build:api)",
-      "Bash(npx pnpm@9 --filter api add socket.io @types/pdf-parse)"
+      "Bash(npx pnpm@9 --filter api add socket.io @types/pdf-parse)",
+      "Bash(npx pnpm@9 build:widget)"
     ]
   }
 }
