@@ -27,9 +27,6 @@ RUN cd packages/api && npx prisma generate
 RUN cd packages/shared && pnpm build
 RUN cd packages/api && pnpm build
 
-# Remove dev-only deps but keep prisma (needed for db push at startup)
-RUN pnpm prune --prod
-
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=384"
 ENV PORT=3000
