@@ -13,6 +13,7 @@
     "lint": "eslint \"{src,test}/**/*.ts\" --fix"
   },
   "dependencies": {
+    "@langchain/core": "^0.1.40",
     "@langchain/community": "^0.0.30",
     "@langchain/google-genai": "^0.0.10",
     "@langchain/groq": "^0.0.8",
