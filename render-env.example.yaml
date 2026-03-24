@@ -14,14 +14,14 @@
 # Sign up: https://neon.tech
 # After creating project, run in SQL Editor:
 #   CREATE EXTENSION IF NOT EXISTS vector;
-DATABASE_URL: postgresql://neondb_owner:xxx@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL: postgresql://neondb_owner:npg_4ocB1DsAjEap@ep-dry-pine-anq2pebc-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 
 # ─── Redis ─────────────────────────────────────────────
 # Upstash (free, no card: 10K commands/day, 256MB)
 # Sign up: https://upstash.com
 # NOTE: App works without Redis for all core features.
 #       Redis is only needed if you enable BullMQ job queues later.
-REDIS_URL: rediss://default:xxx@us1-xxx.upstash.io:6379
+REDIS_URL: rdefault:gQAAAAAAAUZ7AAIncDIxY2YyNzU4NzU0NDA0YThhOGI3MTljMjQyOGQ2YTQ3NXAyODM1Nzk@bold-mudfish-83579.upstash.io:6379
 
 # ─── Authentication / JWT ──────────────────────────────
 # Generate with: openssl rand -base64 48
@@ -34,7 +34,7 @@ JWT_REFRESH_EXPIRATION: 7d
 # At least ONE required for chat/RAG
 # Gemini (free, no card: 15 RPM, 1M tokens/day)
 #   https://aistudio.google.com/apikey
-GEMINI_API_KEY: ""
+GEMINI_API_KEY: "AIzaSyAl3Y5mT5fh14JKhcm3_W8CanG1mN3QiME"
 # Groq (free, no card: 30 RPM, 6K tokens/min)
 #   https://console.groq.com/keys
 GROQ_API_KEY: ""
