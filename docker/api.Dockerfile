@@ -27,7 +27,7 @@ RUN cd packages/api && npx prisma generate
 RUN cd packages/shared && pnpm build
 RUN cd packages/api && pnpm build
 
-# Prune dev dependencies to save memory
+# Remove dev-only deps but keep prisma (needed for db push at startup)
 RUN pnpm prune --prod
 
 ENV NODE_ENV=production
@@ -40,4 +40,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 USER appuser
 EXPOSE 3000
 
-CMD ["sh", "-c", "cd packages/api && npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "cd packages/api && npx prisma db push --skip-generate --accept-data-loss && node dist/main.js"]

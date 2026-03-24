@@ -21,7 +21,7 @@ DATABASE_URL: postgresql://neondb_owner:npg_4ocB1DsAjEap@ep-dry-pine-anq2pebc-po
 # Sign up: https://upstash.com
 # NOTE: App works without Redis for all core features.
 #       Redis is only needed if you enable BullMQ job queues later.
-REDIS_URL: rdefault:gQAAAAAAAUZ7AAIncDIxY2YyNzU4NzU0NDA0YThhOGI3MTljMjQyOGQ2YTQ3NXAyODM1Nzk@bold-mudfish-83579.upstash.io:6379
+REDIS_URL: default:gQAAAAAAAUZ7AAIncDIxY2YyNzU4NzU0NDA0YThhOGI3MTljMjQyOGQ2YTQ3NXAyODM1Nzk@bold-mudfish-83579.upstash.io:6379
 
 # ─── Authentication / JWT ──────────────────────────────
 # Generate with: openssl rand -base64 48
