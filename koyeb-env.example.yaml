@@ -1,0 +1,50 @@
+# ─── Koyeb Environment Variables ───────────────────────
+#
+# Add these in: Koyeb Dashboard → App → Service → Settings → Environment Variables
+# Or via CLI:  koyeb service update api --app sayak-ai-chatbot --env KEY=VALUE
+#
+# This file is for documentation only — do NOT commit actual secrets.
+
+# ─── Database ──────────────────────────────────────────
+# Neon.tech (free tier: 0.5GB storage, pgvector supported, no expiry)
+# Create at: https://neon.tech → New Project → enable pgvector extension
+# Run in SQL console: CREATE EXTENSION IF NOT EXISTS vector;
+DATABASE_URL: postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+
+# ─── Redis ─────────────────────────────────────────────
+# Upstash (free tier: 10K commands/day, 256MB)
+# Create at: https://upstash.com → Create Database → REST API
+# NOTE: The app runs without Redis if you're not using BullMQ queues.
+#       If Redis is unavailable, the app still works for all core features.
+REDIS_URL: rediss://default:xxx@us1-xxx.upstash.io:6379
+
+# ─── Authentication / JWT ──────────────────────────────
+# Generate secrets with: openssl rand -base64 48
+JWT_SECRET: CHANGE_ME
+JWT_REFRESH_SECRET: CHANGE_ME
+JWT_EXPIRATION: 15m
+JWT_REFRESH_EXPIRATION: 7d
+
+# ─── LLM Providers ────────────────────────────────────
+# At least ONE is required for chat/RAG functionality
+#
+# Gemini (free: 15 RPM, 1M tokens/day)
+#   Get key at: https://aistudio.google.com/apikey
+GEMINI_API_KEY: ""
+#
+# Groq (free: 30 RPM, 6K tokens/min)
+#   Get key at: https://console.groq.com/keys
+GROQ_API_KEY: ""
+
+# ─── Application URLs ─────────────────────────────────
+# Update AFTER deploying each service
+API_URL: https://sayak-ai-chatbot-api-xxx.koyeb.app
+DASHBOARD_URL: https://your-dashboard.vercel.app
+WIDGET_CDN_URL: https://your-widget.vercel.app
+
+# ─── CORS ──────────────────────────────────────────────
+CORS_ORIGINS: https://your-dashboard.vercel.app,https://your-widget.vercel.app
+
+# ─── Runtime ───────────────────────────────────────────
+NODE_ENV: production
+API_PORT: "3000"

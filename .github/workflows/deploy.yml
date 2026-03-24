@@ -1,0 +1,141 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # ─── Build & Test ──────────────────────────────────
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @sayak-chatbot/shared build
+
+      - name: Lint all packages
+        run: pnpm lint
+
+      - name: Build API
+        run: pnpm build:api
+
+      - name: Build Dashboard
+        run: pnpm build:dashboard
+
+      - name: Build Widget
+        run: pnpm build:widget
+
+  # ─── Deploy API to Koyeb ───────────────────────────
+  deploy-api:
+    name: Deploy API to Koyeb
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Install Koyeb CLI
+        run: curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+
+      - name: Trigger Koyeb redeploy
+        env:
+          KOYEB_TOKEN: ${{ secrets.KOYEB_API_TOKEN }}
+        run: |
+          koyeb service redeploy sayak-ai-chatbot/api
+          echo "Koyeb redeploy triggered successfully"
+
+  # ─── Dashboard (Vercel auto-deploys via GitHub integration) ─
+  verify-dashboard:
+    name: Verify Dashboard Build
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared package
+        run: pnpm --filter @sayak-chatbot/shared build
+
+      - name: Lint dashboard
+        run: pnpm --filter dashboard lint
+
+      - name: Build dashboard
+        run: pnpm --filter dashboard build
+
+  # ─── Build & Upload Widget Artifact ────────────────
+  deploy-widget:
+    name: Build Widget Artifact
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build widget
+        run: pnpm build:widget
+
+      - name: Upload widget artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: widget-dist-${{ github.sha }}
+          path: packages/widget/dist/
+          retention-days: 30
+          if-no-files-found: error

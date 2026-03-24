@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx pnpm@9 install --reporter=default)",
+      "Bash(npx pnpm@9 --filter @sayak-chatbot/shared build)",
+      "Bash(npx pnpm@9 --filter api prisma:generate)",
+      "Bash(npx pnpm@9 build:api)",
+      "Bash(npx pnpm@9 --filter api add socket.io @types/pdf-parse)"
+    ]
+  }
+}

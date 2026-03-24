@@ -1,0 +1,404 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ─── ENUMS ─────────────────────────────────────────────
+
+enum PlanTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum KnowledgeSourceType {
+  URL
+  PDF
+  DOCX
+  TEXT
+}
+
+enum IngestionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ConversationStatus {
+  ACTIVE
+  HANDED_OFF
+  RESOLVED
+  EXPIRED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum LLMProvider {
+  GEMINI
+  GROQ
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
+// ─── MULTI-TENANCY ROOT ────────────────────────────────
+
+model Tenant {
+  id                  String       @id @default(cuid())
+  name                String
+  slug                String       @unique
+  plan                PlanTier     @default(FREE)
+  status              TenantStatus @default(ACTIVE)
+  customDomain        String?      @unique
+  logoUrl             String?
+  brandColor          String?      @default("#6366f1")
+  monthlyMessageQuota Int          @default(1000)
+  messagesUsed        Int          @default(0)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  users        TenantUser[]
+  chatbots     Chatbot[]
+  apiKeys      ApiKey[]
+  leads        Lead[]
+  appointments Appointment[]
+  whitelabel   WhitelabelConfig?
+  invitations  Invitation[]
+
+  @@index([slug])
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  name      String
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([key])
+  @@index([tenantId])
+}
+
+// ─── USERS & AUTH ──────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  avatarUrl    String?
+  isSuperAdmin Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenants              TenantUser[]
+  handoffAgentSessions HandoffSession[] @relation("AgentSessions")
+  sentInvitations      Invitation[]     @relation("InvitationSender")
+}
+
+model TenantUser {
+  id       String   @id @default(cuid())
+  userId   String
+  tenantId String
+  role     UserRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+}
+
+// ─── INVITATIONS ──────────────────────────────────────
+
+model Invitation {
+  id        String           @id @default(cuid())
+  email     String
+  tenantId  String
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role      UserRole         @default(MEMBER)
+  status    InvitationStatus @default(PENDING)
+  invitedBy String
+  sender    User             @relation("InvitationSender", fields: [invitedBy], references: [id])
+  token     String           @unique @default(cuid())
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+  @@index([token])
+  @@index([email])
+}
+
+// ─── CHATBOTS ──────────────────────────────────────────
+
+model Chatbot {
+  id          String      @id @default(cuid())
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isActive    Boolean     @default(true)
+  llmProvider LLMProvider @default(GEMINI)
+  llmModel    String      @default("gemini-2.0-flash")
+
+  // Widget appearance
+  widgetPosition  String @default("bottom-right")
+  primaryColor    String @default("#6366f1")
+  welcomeMessage  String @default("Hello! How can I help you?")
+  placeholderText String @default("Type a message...")
+  avatarUrl       String?
+
+  // Feature toggles
+  leadCaptureEnabled Boolean @default(false)
+  appointmentEnabled Boolean @default(false)
+  handoffEnabled     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  aiMask           AIMask?
+  knowledgeSources KnowledgeSource[]
+  conversations    Conversation[]
+  leadFormConfig   LeadFormConfig?
+  bookingConfig    BookingConfig?
+
+  @@index([tenantId])
+}
+
+// ─── AI MASKS (PERSONAS) ──────────────────────────────
+
+model AIMask {
+  id            String  @id @default(cuid())
+  chatbotId     String  @unique
+  chatbot       Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  personaName   String
+  personality   String
+  systemPrompt  String  @db.Text
+  responseStyle String?
+  restrictions  String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── KNOWLEDGE BASE & RAG ─────────────────────────────
+
+model KnowledgeSource {
+  id           String              @id @default(cuid())
+  chatbotId    String
+  chatbot      Chatbot             @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  type         KnowledgeSourceType
+  name         String
+  sourceUrl    String?
+  fileName     String?
+  fileSize     Int?
+  status       IngestionStatus     @default(PENDING)
+  errorMessage String?
+  chunkCount   Int                 @default(0)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  chunks DocumentChunk[]
+
+  @@index([chatbotId])
+  @@index([chatbotId, status])
+}
+
+model DocumentChunk {
+  id                String          @id @default(cuid())
+  knowledgeSourceId String
+  knowledgeSource   KnowledgeSource @relation(fields: [knowledgeSourceId], references: [id], onDelete: Cascade)
+  content           String          @db.Text
+  metadata          Json?
+  chunkIndex        Int
+  tokenCount        Int
+  // embedding vector(768) — added via raw SQL migration:
+  // ALTER TABLE "DocumentChunk" ADD COLUMN embedding vector(768);
+  // CREATE INDEX idx_chunk_embedding ON "DocumentChunk"
+  //   USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+  createdAt         DateTime        @default(now())
+
+  @@index([knowledgeSourceId])
+}
+
+// ─── CONVERSATIONS & MESSAGES ─────────────────────────
+
+model Conversation {
+  id            String             @id @default(cuid())
+  chatbotId     String
+  chatbot       Chatbot            @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  visitorId     String
+  visitorName   String?
+  visitorEmail  String?
+  status        ConversationStatus @default(ACTIVE)
+  metadata      Json?
+  startedAt     DateTime           @default(now())
+  lastMessageAt DateTime           @default(now())
+  resolvedAt    DateTime?
+
+  messages       Message[]
+  handoffSession HandoffSession?
+  lead           Lead?
+
+  @@index([chatbotId])
+  @@index([chatbotId, status])
+  @@index([visitorId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String       @db.Text
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([conversationId, createdAt])
+}
+
+// ─── HUMAN HANDOFF ────────────────────────────────────
+
+model HandoffSession {
+  id             String       @id @default(cuid())
+  conversationId String       @unique
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  agentId        String?
+  agent          User?        @relation("AgentSessions", fields: [agentId], references: [id])
+  reason         String?
+  claimedAt      DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([agentId])
+}
+
+// ─── LEAD GENERATION ──────────────────────────────────
+
+model LeadFormConfig {
+  id                   String   @id @default(cuid())
+  chatbotId            String   @unique
+  chatbot              Chatbot  @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  fields               Json
+  triggerAfterMessages Int      @default(3)
+  triggerOnKeywords    String[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Lead {
+  id             String        @id @default(cuid())
+  tenantId       String
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversationId String?       @unique
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  email          String?
+  name           String?
+  phone          String?
+  customFields   Json?
+  capturedAt     DateTime      @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, capturedAt])
+}
+
+// ─── APPOINTMENT BOOKING ──────────────────────────────
+
+model BookingConfig {
+  id              String  @id @default(cuid())
+  chatbotId       String  @unique
+  chatbot         Chatbot @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
+  timezone        String  @default("UTC")
+  slotDurationMin Int     @default(30)
+  bufferMin       Int     @default(0)
+  maxAdvanceDays  Int     @default(30)
+  weeklySchedule  Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Appointment {
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  chatbotId    String
+  visitorName  String
+  visitorEmail String
+  visitorPhone String?
+  startTime    DateTime
+  endTime      DateTime
+  status       AppointmentStatus @default(PENDING)
+  notes        String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([tenantId])
+  @@index([chatbotId, startTime])
+  @@index([tenantId, status])
+}
+
+// ─── WHITE-LABEL ──────────────────────────────────────
+
+model WhitelabelConfig {
+  id              String  @id @default(cuid())
+  tenantId        String  @unique
+  tenant          Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customDomain    String? @unique
+  removeBranding  Boolean @default(false)
+  customCss       String? @db.Text
+  faviconUrl      String?
+  emailFromName   String?
+  emailFromDomain String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── ANALYTICS ────────────────────────────────────────
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  chatbotId String
+  eventType String
+  visitorId String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([chatbotId, eventType])
+  @@index([chatbotId, createdAt])
+}

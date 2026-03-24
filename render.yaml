@@ -1,0 +1,27 @@
+# ─── Render Blueprint ─────────────────────────────────
+# Docs: https://docs.render.com/blueprint-spec
+#
+# To deploy:
+#   1. Connect this repo in the Render Dashboard
+#   2. Create an environment group named "sayak-chatbot-env" with all
+#      required env vars (see render-env.example.yaml)
+#   3. Render will auto-detect this file and provision services
+
+services:
+  - type: web
+    name: api
+    runtime: docker
+    dockerfilePath: ./docker/api.Dockerfile
+    dockerContext: .
+    repo: https://github.com/YOUR_ORG/sayak-ai-chatbot  # Update with your repo URL
+    branch: main
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PORT
+        value: "3000"
+      - fromGroup: sayak-chatbot-env

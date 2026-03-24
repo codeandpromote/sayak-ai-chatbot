@@ -1,0 +1,177 @@
+/**
+ * AI Chatbot Widget - Admin Styles
+ *
+ * Styles for the plugin settings page in the WordPress admin.
+ *
+ * @package AI_Chatbot_Widget
+ * @since   1.0.0
+ */
+
+/* Settings page layout */
+.aicw-settings-wrap {
+	max-width: 1200px;
+}
+
+.aicw-settings-columns {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+	margin-top: 20px;
+}
+
+.aicw-settings-main {
+	flex: 1 1 65%;
+	min-width: 0;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px 24px;
+}
+
+.aicw-settings-sidebar {
+	flex: 0 0 320px;
+	position: sticky;
+	top: 40px;
+}
+
+/* Form table overrides */
+.aicw-settings-main .form-table th {
+	width: 180px;
+	padding-left: 0;
+}
+
+.aicw-settings-main .form-table td {
+	padding-bottom: 20px;
+}
+
+.aicw-settings-main .form-table td .description {
+	margin-top: 6px;
+	font-style: italic;
+	color: #646970;
+}
+
+.aicw-settings-main h2 {
+	margin-top: 28px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.aicw-settings-main h2:first-of-type {
+	margin-top: 0;
+}
+
+/* Preview panel */
+.aicw-preview-panel {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 20px;
+	margin-bottom: 16px;
+}
+
+.aicw-preview-panel h2 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.aicw-preview-container {
+	position: relative;
+	height: 140px;
+	background: #f0f0f1;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	margin-top: 12px;
+	overflow: hidden;
+}
+
+/* Preview button (simulated launcher) */
+.aicw-preview-button {
+	position: absolute;
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: default;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	transition: background-color 0.2s ease, bottom 0.3s ease, left 0.3s ease, right 0.3s ease;
+}
+
+.aicw-preview-button[data-position="bottom-right"] {
+	bottom: 16px;
+	right: 16px;
+	left: auto;
+}
+
+.aicw-preview-button[data-position="bottom-left"] {
+	bottom: 16px;
+	left: 16px;
+	right: auto;
+}
+
+.aicw-preview-button svg {
+	display: block;
+}
+
+/* Info panel */
+.aicw-info-panel {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 20px;
+}
+
+.aicw-info-panel h2 {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.aicw-info-panel p {
+	margin: 8px 0;
+	font-size: 13px;
+	color: #50575e;
+}
+
+.aicw-info-panel code {
+	display: block;
+	margin-top: 4px;
+	padding: 8px 10px;
+	background: #f6f7f7;
+	border-radius: 3px;
+	font-size: 12px;
+	word-break: break-all;
+}
+
+/* Color picker width fix */
+.aicw-settings-main .wp-picker-container {
+	display: inline-block;
+}
+
+/* Textarea code field */
+.aicw-settings-main textarea.code {
+	font-family: Consolas, Monaco, monospace;
+	font-size: 13px;
+	tab-size: 4;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 960px) {
+	.aicw-settings-columns {
+		flex-direction: column;
+	}
+
+	.aicw-settings-sidebar {
+		flex: 1 1 auto;
+		width: 100%;
+		position: static;
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.aicw-settings-main .form-table th {
+		width: auto;
+	}
+}

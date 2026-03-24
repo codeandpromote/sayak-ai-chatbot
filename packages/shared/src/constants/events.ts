@@ -1,0 +1,17 @@
+export const WS_EVENTS = {
+  CHAT_MESSAGE: 'chat:message',
+  CHAT_TYPING: 'chat:typing',
+  CHAT_STREAM_TOKEN: 'chat:stream:token',
+  CHAT_STREAM_DONE: 'chat:stream:done',
+  CHAT_STREAM_ERROR: 'chat:stream:error',
+  HANDOFF_REQUEST: 'handoff:request',
+  HANDOFF_CLAIMED: 'handoff:claimed',
+  HANDOFF_MESSAGE: 'handoff:message',
+  HANDOFF_RESOLVED: 'handoff:resolved',
+  LEAD_FORM_TRIGGER: 'lead:form:trigger',
+  LEAD_CAPTURED: 'lead:captured',
+  APPOINTMENT_TRIGGER: 'appointment:trigger',
+  APPOINTMENT_BOOKED: 'appointment:booked',
+  CONNECTION_ACK: 'connection:ack',
+  ERROR: 'error',
+} as const;
