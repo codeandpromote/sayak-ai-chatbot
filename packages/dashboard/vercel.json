@@ -1,8 +1,8 @@
 {
   "framework": "nextjs",
-  "buildCommand": "cd ../.. && npx pnpm@9 install && npx pnpm@9 --filter @sayak-chatbot/shared build && cd packages/dashboard && npx next build",
+  "installCommand": "cd ../.. && npx pnpm@9 install",
+  "buildCommand": "cd ../.. && npx pnpm@9 --filter @sayak-chatbot/shared build && cd packages/dashboard && npx next build",
   "outputDirectory": ".next",
-  "installCommand": "echo 'Install handled in buildCommand'",
   "rewrites": [
     {
       "source": "/api/:path*",
