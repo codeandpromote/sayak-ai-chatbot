@@ -13,7 +13,7 @@ RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup
 
 # Install dependencies
-COPY pnpm-workspace.yaml package.json tsconfig.base.json pnpm-lock.yaml* ./
+COPY .npmrc pnpm-workspace.yaml package.json tsconfig.base.json pnpm-lock.yaml* ./
 COPY packages/api/package.json packages/api/
 COPY packages/shared/package.json packages/shared/
 
