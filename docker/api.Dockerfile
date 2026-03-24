@@ -1,28 +1,5 @@
-# ─── Stage 1: Build ────────────────────────────
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# OpenSSL for Prisma on Alpine
-RUN apk add --no-cache openssl
-
-RUN corepack enable && corepack prepare pnpm@9 --activate
-
-COPY pnpm-workspace.yaml package.json tsconfig.base.json pnpm-lock.yaml* ./
-COPY packages/api/package.json packages/api/
-COPY packages/shared/package.json packages/shared/
-
-RUN pnpm install --frozen-lockfile || pnpm install
-
-COPY packages/shared/ packages/shared/
-COPY packages/api/ packages/api/
-
-RUN cd packages/api && npx prisma generate
-RUN cd packages/shared && pnpm build
-RUN cd packages/api && pnpm build
-
-# ─── Stage 2: Production ───────────────────────
-FROM node:20-alpine AS production
+# ─── Single-stage build for Render Free (512MB RAM) ────
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -35,22 +12,25 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup
 
-COPY pnpm-workspace.yaml package.json ./
+# Install dependencies
+COPY pnpm-workspace.yaml package.json tsconfig.base.json pnpm-lock.yaml* ./
 COPY packages/api/package.json packages/api/
 COPY packages/shared/package.json packages/shared/
 
-ENV NODE_ENV=production
-RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
+RUN pnpm install --frozen-lockfile || pnpm install
 
-# Re-generate Prisma client in production node_modules
-COPY --from=builder /app/packages/api/prisma packages/api/prisma
+# Copy source and build
+COPY packages/shared/ packages/shared/
+COPY packages/api/ packages/api/
+
 RUN cd packages/api && npx prisma generate
+RUN cd packages/shared && pnpm build
+RUN cd packages/api && pnpm build
 
-# Copy build outputs
-COPY --from=builder /app/packages/api/dist packages/api/dist
-COPY --from=builder /app/packages/shared/dist packages/shared/dist
+# Prune dev dependencies to save memory
+RUN pnpm prune --prod
 
-# Memory optimization for Render Free (512MB RAM)
+ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=384"
 ENV PORT=3000
 
