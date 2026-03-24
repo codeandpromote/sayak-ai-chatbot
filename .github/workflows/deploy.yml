@@ -40,6 +40,9 @@ jobs:
       - name: Build shared package
         run: pnpm --filter @sayak-chatbot/shared build
 
+      - name: Generate Prisma client
+        run: pnpm --filter api prisma:generate
+
       - name: Lint all packages
         run: pnpm lint
 
