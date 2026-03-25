@@ -23,7 +23,7 @@ export default function RegisterPage() {
 
     try {
       const res = await apiClient.post('/auth/register', { name, email, password, companyName });
-      setAuth(res.data.data);
+      setAuth(res.data);
       router.push('/overview');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
