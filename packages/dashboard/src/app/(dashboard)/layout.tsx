@@ -1,7 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { cn } from '@/lib/utils';
 
@@ -24,8 +25,20 @@ const adminNavItems = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const tenantRole = useAuthStore((s) => s.tenantRole);
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      router.push('/login');
+    }
+  }, [router]);
+
+  if (!useAuthStore.getState().tenantId && typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen">
