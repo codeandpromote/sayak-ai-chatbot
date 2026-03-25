@@ -60,10 +60,18 @@ export class LlmFactoryService {
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
-    return this.embeddingModel.embedQuery(text);
+    const embedding = await this.embeddingModel.embedQuery(text);
+    if (!embedding || embedding.length === 0) {
+      throw new Error('Embedding generation returned empty result. Check GEMINI_API_KEY.');
+    }
+    return embedding;
   }
 
   async generateEmbeddings(texts: string[]): Promise<number[][]> {
-    return this.embeddingModel.embedDocuments(texts);
+    const embeddings = await this.embeddingModel.embedDocuments(texts);
+    if (!embeddings || embeddings.length === 0 || embeddings[0].length === 0) {
+      throw new Error('Embedding generation returned empty results. Check GEMINI_API_KEY.');
+    }
+    return embeddings;
   }
 }
