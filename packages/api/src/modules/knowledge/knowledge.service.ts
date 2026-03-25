@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UrlScraperProcessor } from './processors/url-scraper.processor';
 import { PdfParserProcessor } from './processors/pdf-parser.processor';
@@ -9,7 +9,7 @@ import { LlmFactoryService } from '../rag/llm/llm-factory.service';
 import { unlink } from 'fs/promises';
 
 @Injectable()
-export class KnowledgeService implements OnModuleInit {
+export class KnowledgeService {
   private readonly logger = new Logger(KnowledgeService.name);
 
   constructor(
@@ -21,50 +21,6 @@ export class KnowledgeService implements OnModuleInit {
     private vectorStore: VectorStoreService,
     private llmFactory: LlmFactoryService,
   ) {}
-
-  async onModuleInit() {
-    // Re-embed chunks that lost embeddings (e.g. after prisma db push)
-    this.reEmbedMissingChunks().catch((err) =>
-      this.logger.error(`Re-embedding failed: ${err}`),
-    );
-  }
-
-  private async reEmbedMissingChunks() {
-    try {
-      const nullChunks = await this.prisma.$queryRawUnsafe<{ count: bigint }[]>(
-        'SELECT COUNT(*) as count FROM "DocumentChunk" WHERE embedding IS NULL',
-      );
-      const count = Number(nullChunks[0]?.count || 0);
-      if (count === 0) return;
-
-      this.logger.log(`Re-embedding ${count} chunks that lost embeddings...`);
-      const chunks = await this.prisma.documentChunk.findMany({
-        where: {},
-        select: { id: true, content: true },
-        take: 200,
-      });
-
-      // Filter to only chunks with null embedding via raw query
-      const nullIds = await this.prisma.$queryRawUnsafe<{ id: string }[]>(
-        'SELECT id FROM "DocumentChunk" WHERE embedding IS NULL LIMIT 200',
-      );
-      const nullIdSet = new Set(nullIds.map((r) => r.id));
-      const toEmbed = chunks.filter((c) => nullIdSet.has(c.id));
-
-      const BATCH_SIZE = 10;
-      for (let i = 0; i < toEmbed.length; i += BATCH_SIZE) {
-        const batch = toEmbed.slice(i, i + BATCH_SIZE);
-        const texts = batch.map((c) => c.content);
-        const embeddings = await this.llmFactory.generateEmbeddings(texts);
-        await Promise.all(
-          batch.map((record, j) => this.vectorStore.insertChunkWithEmbedding(record.id, embeddings[j])),
-        );
-      }
-      this.logger.log(`Re-embedded ${toEmbed.length} chunks successfully`);
-    } catch (error) {
-      this.logger.error(`Re-embedding error: ${error}`);
-    }
-  }
 
   async findAll(tenantId: string, chatbotId: string) {
     await this.verifyChatbot(tenantId, chatbotId);
