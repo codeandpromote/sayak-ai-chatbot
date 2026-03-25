@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { KnowledgeService } from './knowledge.service';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
@@ -6,6 +6,8 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
 import { tmpdir } from 'os';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 // Stream file to disk, not memory — critical for 512MB RAM
 const storage = diskStorage({
@@ -14,6 +16,7 @@ const storage = diskStorage({
 });
 
 @Controller('chatbots/:chatbotId/knowledge')
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class KnowledgeController {
   constructor(private knowledgeService: KnowledgeService) {}
 

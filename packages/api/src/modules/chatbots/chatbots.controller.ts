@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ChatbotsService } from './chatbots.service';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 import { CreateChatbotDto } from './dto/create-chatbot.dto';
 import { UpdateChatbotDto } from './dto/update-chatbot.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 @Controller('chatbots')
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class ChatbotsController {
   constructor(private chatbotsService: ChatbotsService) {}
 

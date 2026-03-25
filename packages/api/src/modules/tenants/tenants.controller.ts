@@ -1,9 +1,12 @@
-import { Controller, Get, Patch, Body } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 @Controller('tenants')
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class TenantsController {
   constructor(private tenantsService: TenantsService) {}
 

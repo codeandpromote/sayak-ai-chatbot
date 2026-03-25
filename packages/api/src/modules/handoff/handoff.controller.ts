@@ -1,9 +1,12 @@
-import { Controller, Post, Param, Get } from '@nestjs/common';
+import { Controller, Post, Param, Get, UseGuards } from '@nestjs/common';
 import { HandoffService } from './handoff.service';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 @Controller('handoff')
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class HandoffController {
   constructor(private handoffService: HandoffService) {}
 

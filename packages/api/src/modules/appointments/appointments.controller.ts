@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { AvailabilityService } from './availability.service';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 @Controller()
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class AppointmentsController {
   constructor(private appointmentsService: AppointmentsService, private availabilityService: AvailabilityService) {}
 

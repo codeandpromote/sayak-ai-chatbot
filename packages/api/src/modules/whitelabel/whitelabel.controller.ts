@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { WhitelabelService } from './whitelabel.service';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 @Controller('whitelabel')
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class WhitelabelController {
   constructor(private whitelabelService: WhitelabelService) {}
 

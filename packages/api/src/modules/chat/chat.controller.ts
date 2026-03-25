@@ -1,11 +1,14 @@
-import { Controller, Post, Body, Res, Param, Get, Query } from '@nestjs/common';
+import { Controller, Post, Body, Res, Param, Get, Query, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { ChatService } from './chat.service';
 import { ChatHistoryService } from './chat-history.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentTenant } from '../../common/decorators/current-tenant.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { TenantGuard } from '../../common/guards/tenant.guard';
 
 @Controller('chat')
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class ChatController {
   constructor(
     private chatService: ChatService,
