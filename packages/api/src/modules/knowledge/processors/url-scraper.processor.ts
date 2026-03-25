@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as cheerio from 'cheerio';
+import axios from 'axios';
 
 @Injectable()
 export class UrlScraperProcessor {
@@ -8,14 +9,14 @@ export class UrlScraperProcessor {
   async scrape(url: string): Promise<string> {
     this.logger.log(`Scraping URL: ${url}`);
 
-    const response = await fetch(url, {
+    const response = await axios.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; SayakChatBot/1.0)' },
-      signal: AbortSignal.timeout(30000),
+      timeout: 30000,
+      maxRedirects: 5,
+      responseType: 'text',
     });
 
-    if (!response.ok) throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
-
-    const html = await response.text();
+    const html = response.data;
     const $ = cheerio.load(html);
 
     // Remove non-content elements
@@ -34,6 +35,11 @@ export class UrlScraperProcessor {
 
     content = content.replace(/\s+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
     this.logger.log(`Scraped ${content.length} characters from ${url}`);
+
+    if (!content.length) {
+      throw new Error('No text content found on the page');
+    }
+
     return content;
   }
 }
