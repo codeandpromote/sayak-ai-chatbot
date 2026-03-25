@@ -90,8 +90,23 @@ export class RagService {
         const content = typeof chunk.content === 'string' ? chunk.content : '';
         if (content) yield content;
       }
-    } catch (error) {
-      this.logger.error(`LLM streaming error: ${error}`);
+    } catch (error: any) {
+      this.logger.error(`LLM streaming error (${chatbot.llmProvider}/${chatbot.llmModel}): ${error?.message || error}`);
+      // If primary provider fails, try fallback
+      const fallbackLlm = this.llmFactory.getFallbackModel(chatbot.llmProvider);
+      if (fallbackLlm) {
+        this.logger.log(`Retrying with fallback provider...`);
+        try {
+          const fallbackStream = await fallbackLlm.stream(messages);
+          for await (const chunk of fallbackStream) {
+            const content = typeof chunk.content === 'string' ? chunk.content : '';
+            if (content) yield content;
+          }
+          return;
+        } catch (fallbackError: any) {
+          this.logger.error(`Fallback LLM also failed: ${fallbackError?.message || fallbackError}`);
+        }
+      }
       yield 'I apologize, but I encountered an error processing your request. Please try again.';
     }
   }

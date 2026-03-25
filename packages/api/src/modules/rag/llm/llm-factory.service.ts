@@ -55,6 +55,19 @@ export class LlmFactoryService {
     return model;
   }
 
+  getFallbackModel(currentProvider: string): BaseChatModel | null {
+    // If Gemini failed, try Groq; if Groq failed, try Gemini
+    if (currentProvider === 'GEMINI' && this.config.get('GROQ_API_KEY')) {
+      this.logger.log('Falling back to Groq');
+      return this.getModel('GROQ', 'llama-3.3-70b-versatile');
+    }
+    if (currentProvider === 'GROQ' && this.config.get('GEMINI_API_KEY')) {
+      this.logger.log('Falling back to Gemini');
+      return this.getModel('GEMINI', 'gemini-2.0-flash');
+    }
+    return null;
+  }
+
   async generateEmbedding(text: string): Promise<number[]> {
     const result = await this.callEmbeddingApi([text]);
     return result[0];
