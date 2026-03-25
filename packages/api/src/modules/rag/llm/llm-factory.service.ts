@@ -4,19 +4,15 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { ChatGroq } from '@langchain/groq';
 // BaseChatModel type — use any to avoid deep langchain type resolution issues
 type BaseChatModel = any;
-import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 
 @Injectable()
 export class LlmFactoryService {
   private readonly logger = new Logger(LlmFactoryService.name);
   private models: Map<string, BaseChatModel> = new Map();
-  private embeddingModel: GoogleGenerativeAIEmbeddings;
+  private apiKey: string;
 
   constructor(private config: ConfigService) {
-    this.embeddingModel = new GoogleGenerativeAIEmbeddings({
-      apiKey: this.config.get('GEMINI_API_KEY'),
-      modelName: 'text-embedding-004',
-    });
+    this.apiKey = this.config.get('GEMINI_API_KEY') || '';
   }
 
   getModel(provider: string, modelName: string): BaseChatModel {
@@ -60,18 +56,42 @@ export class LlmFactoryService {
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
-    const embedding = await this.embeddingModel.embedQuery(text);
-    if (!embedding || embedding.length === 0) {
-      throw new Error('Embedding generation returned empty result. Check GEMINI_API_KEY.');
-    }
-    return embedding;
+    const result = await this.callEmbeddingApi([text]);
+    return result[0];
   }
 
   async generateEmbeddings(texts: string[]): Promise<number[][]> {
-    const embeddings = await this.embeddingModel.embedDocuments(texts);
-    if (!embeddings || embeddings.length === 0 || embeddings[0].length === 0) {
-      throw new Error('Embedding generation returned empty results. Check GEMINI_API_KEY.');
+    return this.callEmbeddingApi(texts);
+  }
+
+  private async callEmbeddingApi(texts: string[]): Promise<number[][]> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key=${this.apiKey}`;
+
+    const requests = texts.map((text) => ({
+      model: 'models/gemini-embedding-001',
+      content: { parts: [{ text }] },
+      outputDimensionality: 768,
+    }));
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Embedding API error (${response.status}): ${err}`);
     }
+
+    const data = await response.json();
+    const embeddings = data.embeddings?.map((e: any) => e.values) || [];
+
+    if (embeddings.length === 0 || embeddings[0].length === 0) {
+      throw new Error('Embedding API returned empty results. Check GEMINI_API_KEY.');
+    }
+
+    this.logger.log(`Generated ${embeddings.length} embeddings (dim=${embeddings[0].length})`);
     return embeddings;
   }
 }
