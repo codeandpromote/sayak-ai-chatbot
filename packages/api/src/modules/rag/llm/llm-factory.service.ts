@@ -16,12 +16,28 @@ export class LlmFactoryService {
   }
 
   getModel(provider: string, modelName: string): BaseChatModel {
+    // Prefer Groq for chat if available (Gemini free tier quota may be exhausted)
+    const groqKey = this.config.get('GROQ_API_KEY');
+    if (provider === 'GEMINI' && groqKey) {
+      provider = 'GROQ';
+      modelName = 'llama-3.3-70b-versatile';
+    }
+
     const cacheKey = `${provider}:${modelName}`;
     if (this.models.has(cacheKey)) return this.models.get(cacheKey)!;
 
     let model: BaseChatModel;
 
     switch (provider) {
+      case 'GROQ':
+        model = new ChatGroq({
+          apiKey: groqKey || this.config.get('GROQ_API_KEY'),
+          modelName: modelName || 'llama-3.3-70b-versatile',
+          maxTokens: 1024,
+          temperature: 0.7,
+          streaming: true,
+        });
+        break;
       case 'GEMINI':
         model = new ChatGoogleGenerativeAI({
           apiKey: this.config.get('GEMINI_API_KEY'),
@@ -31,21 +47,12 @@ export class LlmFactoryService {
           streaming: true,
         });
         break;
-      case 'GROQ':
-        model = new ChatGroq({
-          apiKey: this.config.get('GROQ_API_KEY'),
-          modelName: modelName || 'llama-3.3-70b-versatile',
-          maxTokens: 1024,
-          temperature: 0.7,
-          streaming: true,
-        });
-        break;
       default:
-        this.logger.warn(`Unknown provider ${provider}, falling back to Gemini`);
-        model = new ChatGoogleGenerativeAI({
-          apiKey: this.config.get('GEMINI_API_KEY'),
-          modelName: 'gemini-2.0-flash',
-          maxOutputTokens: 1024,
+        this.logger.warn(`Unknown provider ${provider}, using Groq`);
+        model = new ChatGroq({
+          apiKey: groqKey,
+          modelName: 'llama-3.3-70b-versatile',
+          maxTokens: 1024,
           temperature: 0.7,
           streaming: true,
         });
