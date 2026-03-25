@@ -32,7 +32,7 @@ export default function KnowledgePage() {
 
   async function loadSources() {
     const res = await apiClient.get(`/chatbots/${chatbotId}/knowledge`, { headers });
-    setSources(res.data.data);
+    setSources(res.data);
   }
 
   async function addUrl() {

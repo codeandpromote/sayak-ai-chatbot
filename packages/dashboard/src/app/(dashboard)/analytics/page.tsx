@@ -12,7 +12,7 @@ export default function AnalyticsPage() {
     if (!tenantId) return;
     apiClient
       .get('/analytics/summary', { headers: { 'x-tenant-id': tenantId } })
-      .then((res) => setSummary(res.data.data));
+      .then((res) => setSummary(res.data));
   }, [tenantId]);
 
   if (!summary) return <div className="text-gray-500">Loading analytics...</div>;

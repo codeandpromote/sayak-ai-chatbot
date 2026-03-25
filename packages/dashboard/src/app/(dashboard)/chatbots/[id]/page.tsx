@@ -16,10 +16,10 @@ export default function ChatbotDetailPage() {
     if (!tenantId || !id) return;
     apiClient
       .get(`/chatbots/${id}`, { headers: { 'x-tenant-id': tenantId } })
-      .then((res) => setChatbot(res.data.data));
+      .then((res) => setChatbot(res.data));
     apiClient
       .get(`/chatbots/${id}/embed-code`, { headers: { 'x-tenant-id': tenantId } })
-      .then((res) => setEmbedCode(res.data.data.embedCode));
+      .then((res) => setEmbedCode(res.data.embedCode));
   }, [tenantId, id]);
 
   if (!chatbot) return <div className="text-gray-500">Loading...</div>;

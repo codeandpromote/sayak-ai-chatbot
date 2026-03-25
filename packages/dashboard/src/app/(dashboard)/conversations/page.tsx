@@ -14,7 +14,7 @@ export default function ConversationsPage() {
     if (!tenantId) return;
     apiClient
       .get('/chat/conversations', { headers: { 'x-tenant-id': tenantId } })
-      .then((res) => setConversations(res.data.data));
+      .then((res) => setConversations(res.data));
   }, [tenantId]);
 
   async function selectConversation(id: string) {
@@ -22,7 +22,7 @@ export default function ConversationsPage() {
     const res = await apiClient.get(`/chat/conversations/${id}/messages`, {
       headers: { 'x-tenant-id': tenantId },
     });
-    setMessages(res.data.data);
+    setMessages(res.data);
   }
 
   return (

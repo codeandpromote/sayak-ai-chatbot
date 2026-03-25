@@ -12,7 +12,7 @@ export default function AppointmentsPage() {
     if (!tenantId) return;
     apiClient
       .get('/appointments', { headers: { 'x-tenant-id': tenantId } })
-      .then((res) => setAppointments(res.data.data));
+      .then((res) => setAppointments(res.data));
   }, [tenantId]);
 
   async function updateStatus(id: string, status: string) {

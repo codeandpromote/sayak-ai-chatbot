@@ -21,7 +21,7 @@ export default function LiveChatPage() {
     const res = await apiClient.get('/handoff/pending', {
       headers: { 'x-tenant-id': tenantId },
     });
-    setSessions(res.data.data);
+    setSessions(res.data);
   }
 
   async function claimSession(conversationId: string) {

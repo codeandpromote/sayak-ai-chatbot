@@ -27,7 +27,7 @@ export default function ChatbotsPage() {
 
   async function loadChatbots() {
     const res = await apiClient.get('/chatbots', { headers: { 'x-tenant-id': tenantId } });
-    setChatbots(res.data.data);
+    setChatbots(res.data);
   }
 
   async function createChatbot() {

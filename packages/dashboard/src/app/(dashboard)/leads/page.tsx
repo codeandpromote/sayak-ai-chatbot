@@ -12,7 +12,7 @@ export default function LeadsPage() {
     if (!tenantId) return;
     apiClient
       .get('/leads', { headers: { 'x-tenant-id': tenantId } })
-      .then((res) => setData(res.data.data));
+      .then((res) => setData(res.data));
   }, [tenantId]);
 
   return (

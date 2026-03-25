@@ -21,7 +21,7 @@ export default function OverviewPage() {
     if (!tenantId) return;
     apiClient
       .get('/analytics/summary', { headers: { 'x-tenant-id': tenantId } })
-      .then((res) => setSummary(res.data.data))
+      .then((res) => setSummary(res.data))
       .catch(console.error);
   }, [tenantId]);
 
