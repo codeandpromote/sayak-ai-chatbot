@@ -32,7 +32,7 @@ export class Widget {
     private chatbotId: string,
     private apiUrl?: string,
   ) {
-    this.api = new ApiService(apiUrl || 'https://api.yourdomain.com');
+    this.api = new ApiService(apiUrl || 'https://sayak-ai-chatbot.onrender.com');
     this.storage = new StorageService();
   }
 

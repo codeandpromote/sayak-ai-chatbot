@@ -46,9 +46,10 @@ export class ChatbotsService {
   }
 
   getEmbedCode(chatbotId: string) {
-    const widgetUrl = this.config.get('WIDGET_CDN_URL', 'https://cdn.yourdomain.com');
+    const widgetUrl = this.config.get('WIDGET_CDN_URL', 'https://sayak-ai-chatbot-widget.vercel.app').replace(/\/+$/, '');
+    const apiUrl = this.config.get('API_URL', 'https://sayak-ai-chatbot.onrender.com').replace(/\/+$/, '');
     return {
-      embedCode: `<script>\n  (function(w,d,c){\n    w.AIChatbot=w.AIChatbot||{};\n    w.AIChatbot.id=c;\n    var s=d.createElement('script');\n    s.src='${widgetUrl}/widget.js';\n    s.async=true;\n    d.head.appendChild(s);\n  })(window,document,'${chatbotId}');\n</script>`,
+      embedCode: `<script>\n  (function(w,d,c){\n    w.AIChatbot=w.AIChatbot||{};\n    w.AIChatbot.id=c;\n    w.AIChatbot.apiUrl='${apiUrl}';\n    var s=d.createElement('script');\n    s.src='${widgetUrl}/widget.js';\n    s.async=true;\n    d.head.appendChild(s);\n  })(window,document,'${chatbotId}');\n</script>`,
     };
   }
 }
